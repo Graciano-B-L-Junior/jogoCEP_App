@@ -54,15 +54,17 @@ public class buscarPartida extends AppCompatActivity {
                     socketInput=
                             new DataInputStream (clientSocket.getInputStream());
                     while (socketInput!=null) {
-                        String result = socketInput.readUTF();
-                        Log.v("PDM",result);
+                        socketOutput.writeUTF("teste");
+                        socketOutput.flush();
+                        Log.v("PDM","mensagem enviada");
                         }
 
                 }catch(Exception e){
-
+                    e.printStackTrace();
                 }
             }
         });
+        thread.start();
     }
 
 
