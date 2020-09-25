@@ -10,6 +10,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -23,6 +24,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
@@ -38,11 +40,12 @@ public class MainActivity extends AppCompatActivity {
     String cidade;
     String ipAddress;
     String CEP;
+
     ServerSocket welcomeSocket;
     DataOutputStream socketOutput;
+    DataInputStream socketInput;
     BufferedReader socketEntrada;
     DataInputStream fromClient;
-    boolean continua = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +73,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"Digite um CEP valido e verifique",Toast.LENGTH_LONG).show();
         }else{
             Intent game = new Intent(this,buscarPartida.class);
-            game.putExtra("CEP",CEP);
+            Bundle CEPcliente = new Bundle();
+            CEPcliente.putString("CEPcliente",CEP);
+            game.putExtras(CEPcliente);
             startActivity(game);
         }
     }
@@ -104,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void testeDeHttp() {
         try {
-            String CEP = cep_field.getText().toString();
+            CEP = cep_field.getText().toString();
             URL url = new URL("https://viacep.com.br/ws/"+CEP+"/json/");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setReadTimeout(10000);
@@ -112,15 +117,12 @@ public class MainActivity extends AppCompatActivity {
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
             conn.connect();
-
             /*
             OutputStream os = conn.getOutputStream();
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os,"UTF-8"));
             writer.close();
             os.close();
             */
-
-
             int resposta = conn.getResponseCode();
 
             if(resposta == HttpsURLConnection.HTTP_OK){
@@ -131,10 +133,7 @@ public class MainActivity extends AppCompatActivity {
                     response.append(line.trim());
 
                 }
-
-                CEP = t.getText().toString();
                 JSONObject resultado = new JSONObject(response.toString());
-
                 logradouro = resultado.getString("logradouro");
                 cidade = resultado.getString("localidade");
                 t.post(new Runnable() {
@@ -157,24 +156,22 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
     private void ligarServidorSocket() {
-        String result ="";
+        Boolean comecaPartida=false;
         try {
             welcomeSocket = new ServerSocket(9090);
             Socket connectionSocket = welcomeSocket.accept();
-
-            fromClient = new DataInputStream(connectionSocket.getInputStream());
             socketOutput = new DataOutputStream(connectionSocket.getOutputStream());
+            socketInput = new DataInputStream(connectionSocket.getInputStream());
+            socketOutput.writeUTF(CEP);
+            socketOutput.flush();
+            welcomeSocket.close();
+            Intent t = new Intent(this,game.class);
+            Bundle cep = new Bundle();
 
-            continua = true;
-
-            while (continua){
-                result = fromClient.readUTF();
-                Log.v("PDM",result);
-                socketOutput.writeUTF("Pong");
-                socketOutput.flush();
-            }
+            cep.putString("CEP",CEP);
+            t.putExtras(cep);
+            startActivity(t);
         }
         catch (Exception e){
             e.printStackTrace();

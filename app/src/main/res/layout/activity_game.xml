@@ -121,7 +121,7 @@
         app:layout_constraintVertical_bias="0.623" />
 
     <TextView
-        android:id="@+id/pontuacao2"
+        android:id="@+id/tentativas"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0"
