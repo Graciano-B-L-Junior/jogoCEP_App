@@ -53,9 +53,10 @@ public class buscarPartida extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    clientSocket = new Socket("192.168.100.114",9090);
+                    clientSocket = new Socket(ip.getText().toString(),Integer.parseInt(porta.getText().toString()));
                     socketOutput = new DataOutputStream(clientSocket.getOutputStream());
                     socketInput  = new DataInputStream (clientSocket.getInputStream());
+                        CepServidor = socketInput.readUTF();
                         socketOutput.writeUTF(CepCliente);
                         socketOutput.flush();
                         socketOutput.close();
@@ -63,7 +64,9 @@ public class buscarPartida extends AppCompatActivity {
                         Intent t = new Intent(getApplicationContext(),game.class);
                         Bundle infos = new Bundle();
                         infos.putString("Cepcliente",CepCliente);
+                        infos.putString("Cepservidor",CepServidor);
                         infos.putBoolean("Soucliente",true);
+                        infos.putString("ipServidor",ip.getText().toString());
                         t.putExtras(infos);
                         startActivity(t);
                 }catch(Exception e){

@@ -157,18 +157,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void ligarServidorSocket() {
+        String Cepcliente ="";
         Boolean comecaPartida=false;
         try {
             welcomeSocket = new ServerSocket(9090);
             Socket connectionSocket = welcomeSocket.accept();
             socketOutput = new DataOutputStream(connectionSocket.getOutputStream());
             socketInput = new DataInputStream(connectionSocket.getInputStream());
+
             socketOutput.writeUTF(CEP);
+            Cepcliente = socketInput.readUTF();
             socketOutput.flush();
             welcomeSocket.close();
             Intent t = new Intent(this,game.class);
             Bundle cep = new Bundle();
-
+            cep.putString("Cepcliente",Cepcliente);
             cep.putString("CEP",CEP);
             t.putExtras(cep);
             startActivity(t);
